@@ -1,36 +1,38 @@
 (function() {
 	_.extend(Backbone.Router.prototype, Backbone.Events, {
 		before: {},
-		after: {},
 		_runFilters: function(filters, fragment, args) {
-			if (_(filters).isEmpty()) {
+			if (_(filters).isEmpty()) 
 				return true;
-			}
-			var failingFilter = _(filters).detect(function(func, filterRoute) {
+			
+			var def = new $.Defered();
+			var beforeFiltersDefArray = new $.Deferred();
+			_(filters).each(function(func, filterRoute) {
 				if (!_.isRegExp(filterRoute)) {
-					// filterRoute = this._routeToRegExp(filterRoute);
 					filterRoute = new RegExp(filterRoute);
 				}
 				if (filterRoute.test(fragment)) {
 					var result = (_.isFunction(func) ? func.apply(this, args) : this[func].apply(this, args));
-					return _.isBoolean(result) && result === false;
+					beforeFiltersDefArray.push( result ); 
 				}
-				return false;
-			},
-			this);
-						
-			return failingFilter ? false : true;
+			}, this );
+			
+			$.when.apply( null, beforeFiltersDefArray ).done( function(){
+				def.resolve();
+			});
+			// TODO: If any of them failed, cancel this
+			return def;
 		},
 		route: function(route, name, callback) {
+			var instance_ = this;
 			Backbone.history || (Backbone.history = new Backbone.History);
 			if (!_.isRegExp(route)) route = this._routeToRegExp(route);
 			Backbone.history.route(route, _.bind(function(fragment) {
 				var args = this._extractParameters(route, fragment);
-				if (this._runFilters(this.before, fragment, args)) {
-					callback.apply(this, args);
-					this._runFilters(this.after, fragment, args);
-					this.trigger.apply(this, ['route:' + name].concat(args));
-				}
+				this._runFilters(this.before, fragment, args)).done(function(){
+					callback.apply(instance_, args);
+					instance_.trigger.apply(instance_, ['route:' + name].concat(args));
+				});
 			}, this));
 		}
 	});
