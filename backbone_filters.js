@@ -23,6 +23,12 @@
 			// TODO: If any of them failed, cancel this
 			return def;
 		},
+		
+		chritophe : function(){
+			
+			jkfdjdfj
+		},
+		
 		route: function(route, name, callback) {
 			var instance_ = this;
 			Backbone.history || (Backbone.history = new Backbone.History);
