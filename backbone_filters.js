@@ -20,7 +20,7 @@
 			
 			$.when.apply( null, beforeFiltersDefArray ).done( function(){
 				def.resolve();
-			});
+			}); 
 			return def;
 		},
 		 
