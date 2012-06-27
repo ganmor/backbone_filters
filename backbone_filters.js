@@ -31,10 +31,25 @@
 			Backbone.history.route(route, _.bind(function(fragment) {
 				var args = this._extractParameters(route, fragment);
 				this._runFilters(this.before, fragment, args).done(function(){
+					if( !instance_.checkPageValidity( fragment )) return; // Warning : page will still be in the history..
 					callback && callback.apply(instance_, [ args , fragment ] );
 					instance_.trigger.apply(instance_, ['route:' + name].concat(args));
 				});
 			}, this));
+		},
+		
+		/**
+		 * Check if a particular fragment is still requested
+		 * This will prevent user to be redirected to a page he did not want anymore
+		 */
+		checkPageValidity : function( fragment ){
+			
+			var normalisedFragment = Backbone.history.getFragment();
+			if( normalisedFragment != fragment )
+				return false;
+			
+			// TODO: If fragment is different from current fragment, return false
+			return true;
 		}
 	});
 }).call(this);
